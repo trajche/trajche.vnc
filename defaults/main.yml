@@ -1,0 +1,12 @@
+---
+# defaults file for roles/trajche.vnc
+ubuntu_vnc_packages:
+  - xfce4
+  - xfce4-*
+  - vnc4server
+  - python-pexpect
+vnc_resolution: "1024x600"
+vnc_users:
+  - name: trajche
+    num: 1
+    password: d3fAuLZTpasVVord

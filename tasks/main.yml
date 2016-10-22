@@ -1,0 +1,60 @@
+---
+# tasks file for roles/trajche.vnc
+- name: Install xfce4 gui and vnc packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items: "{{ ubuntu_vnc_packages }}"
+
+- name: Display all user configs
+  debug:
+    msg: "{{item.num}}. {{item.name}}:{{item.password}}"
+  with_items: "{{vnc_users}}"
+
+- name: Register users
+  user: name={{ item.name }}
+  with_items: "{{ vnc_users }}"
+
+- name: Create service files for all users
+  template:
+    src: vncserver.j2
+    dest: "/etc/systemd/system/vncserver@:{{item.num}}.service"
+  with_items: "{{ vnc_users }}"
+
+- name: Reloading daemon systemctl for above files
+  command: systemctl daemon-reload
+    #systemd: state=restarted daemon_reload=yes name=crond
+
+- name: Set passwords for all users
+  expect:
+    command: vncpasswd
+    responses:
+      Password: "{{item.password}}"
+      Verify: "{{item.password}}"
+  become: yes
+  become_user: "{{ item.name }}"
+  with_items: "{{ vnc_users }}"
+
+- name: Start server and set password for users
+  command: vncserver
+  become: yes
+  become_user: "{{ item.name }}"
+  with_items: "{{ vnc_users }}"
+
+- name: Create custom xstartup
+  template:
+    src: xstartup.j2
+    mode: 0755
+    dest: "/home/{{ item.name }}/.vnc/xstartup"
+  become: yes
+  become_user: "{{ item.name }}"
+  with_items: "{{ vnc_users }}"
+
+- name: Starting VNC services
+  command: systemctl restart vncserver@:{{ item.num }}.service
+  with_items: "{{ vnc_users }}"
+
+- name: Enable all VNC services on startup
+  command: systemctl enable vncserver@:{{ item.num }}.service
+  with_items: "{{ vnc_users }}"
