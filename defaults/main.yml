@@ -5,8 +5,8 @@ ubuntu_vnc_packages:
   - xfce4-*
   - vnc4server
   - python-pexpect
-vnc_resolution: "1024x600"
+vnc_resolution: "1680x1050"
 vnc_users:
   - name: trajche
-    num: 1
+    num: 9
     password: d3fAuLZTpasVVord
